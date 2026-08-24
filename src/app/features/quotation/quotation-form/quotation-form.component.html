@@ -1,0 +1,310 @@
+<p-toast position="top-right" />
+
+<div class="form-page">
+  <header class="form-header">
+    <div class="header-left">
+      <p-button icon="bi bi-arrow-left" [rounded]="true" [text]="true" (onClick)="goBack()" />
+      <div>
+        <h1>{{ isEditMode() ? 'Edit Quotation' : 'New Quotation' }}</h1>
+        <p>Fill in the details below to create a professional quotation</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <p-button
+        label="Company Settings"
+        icon="bi bi-gear"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="openSettings()"
+      />
+      @if (saved()) {
+        <p-button label="Preview PDF" icon="bi bi-eye" severity="help" [outlined]="true" (onClick)="previewPdf()" />
+        <p-button label="Print PDF" icon="bi bi-printer" severity="success" [outlined]="true" (onClick)="printPdf()" />
+      }
+      <p-button
+        label="Save"
+        icon="bi bi-check-lg"
+        [loading]="saving()"
+        (onClick)="save()"
+      />
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <p-progressSpinner strokeWidth="3" />
+    </div>
+  } @else {
+    <form [formGroup]="form" class="quotation-form">
+      <!-- Quotation Information -->
+      <section class="form-section">
+        <h2><i class="bi bi-file-earmark-text"></i> Quotation Information</h2>
+        <div class="grid form-grid">
+          <div class="col-12 md:col-4 field">
+            <label for="quotationNo">Quotation No</label>
+            <input pInputText id="quotationNo" formControlName="quotationNo" class="w-full" readonly />
+          </div>
+          <div class="col-12 md:col-4 field">
+            <label for="quotationDate">Quotation Date *</label>
+            <p-datepicker
+              inputId="quotationDate"
+              formControlName="quotationDate"
+              [showIcon]="true"
+              dateFormat="dd M yy"
+              styleClass="w-full"
+              inputStyleClass="w-full"
+            />
+          </div>
+          <div class="col-12 md:col-4 field">
+            <label for="validUntil">Valid Until</label>
+            <p-datepicker
+              inputId="validUntil"
+              formControlName="validUntil"
+              [showIcon]="true"
+              dateFormat="dd M yy"
+              styleClass="w-full"
+              inputStyleClass="w-full"
+              [showClear]="true"
+            />
+          </div>
+        </div>
+      </section>
+
+      <!-- Customer Information -->
+      <section class="form-section">
+        <h2><i class="bi bi-person"></i> Customer Information</h2>
+        <div class="grid form-grid">
+          <div class="col-12 md:col-6 field">
+            <label for="customerName">Quotation To *</label>
+            <input
+              pInputText
+              id="customerName"
+              formControlName="customerName"
+              class="w-full"
+              [class.ng-invalid]="isInvalid('customerName')"
+            />
+          </div>
+          <div class="col-12 md:col-6 field">
+            <label for="attention">Atten</label>
+            <input pInputText id="attention" formControlName="attention" class="w-full" />
+          </div>
+          <div class="col-12 md:col-6 field">
+            <label for="companyName">Company Name</label>
+            <input pInputText id="companyName" formControlName="companyName" class="w-full" />
+          </div>
+          <div class="col-12 md:col-6 field">
+            <label for="preparedBy">Prepared By</label>
+            <input pInputText id="preparedBy" formControlName="preparedBy" class="w-full" />
+          </div>
+          <div class="col-12 md:col-6 field">
+            <label for="contactNo">Contact Number</label>
+            <input pInputText id="contactNo" formControlName="contactNo" class="w-full" />
+          </div>
+          <div class="col-12 md:col-6 field">
+            <label for="preparedContactNo">Contact No</label>
+            <input pInputText id="preparedContactNo" formControlName="preparedContactNo" class="w-full" />
+          </div>
+          <div class="col-12 md:col-6 field">
+            <label for="email">Email</label>
+            <input
+              pInputText
+              id="email"
+              formControlName="email"
+              type="email"
+              class="w-full"
+              [class.ng-invalid]="isInvalid('email')"
+            />
+          </div>
+          <div class="col-12 md:col-6 field">
+            <label for="phone">Phone</label>
+            <input pInputText id="phone" formControlName="phone" class="w-full" />
+          </div>
+        </div>
+      </section>
+
+      <!-- Project Information -->
+      <section class="form-section">
+        <h2><i class="bi bi-building"></i> Project Information</h2>
+        <div class="grid form-grid">
+          <div class="col-12 field">
+            <label for="projectName">Project Name</label>
+            <input pInputText id="projectName" formControlName="projectName" class="w-full" />
+          </div>
+        </div>
+      </section>
+
+      <!-- Items -->
+      <section class="form-section items-section">
+        <div class="section-header-row">
+          <h2><i class="bi bi-list-ul"></i> Items</h2>
+          <p-button label="Add Row" icon="bi bi-plus" size="small" (onClick)="addRow()" />
+        </div>
+
+        <div class="items-table-wrapper">
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th class="col-sr">SR No</th>
+                <th class="col-desc">Description</th>
+                <th class="col-qty">Quantity</th>
+                <th class="col-price">Unit Price (AED)</th>
+                <th class="col-total">Total (AED)</th>
+                <th class="col-action"></th>
+              </tr>
+            </thead>
+            <tbody formArrayName="items">
+              @for (item of items.controls; track $index) {
+                <tr [formGroupName]="$index">
+                  <td>
+                    <span class="sr-badge">{{ item.get('srNo')?.value }}</span>
+                  </td>
+                  <td>
+                    <input pInputText formControlName="description" class="w-full" placeholder="Item description" />
+                  </td>
+                  <td>
+                    <p-inputNumber
+                      formControlName="quantity"
+                      [minFractionDigits]="0"
+                      [maxFractionDigits]="2"
+                      [min]="0.01"
+                      inputStyleClass="w-full"
+                    />
+                  </td>
+                  <td>
+                    <p-inputNumber
+                      formControlName="unitPrice"
+                      mode="decimal"
+                      [minFractionDigits]="2"
+                      [maxFractionDigits]="2"
+                      [min]="0"
+                      inputStyleClass="w-full"
+                    />
+                  </td>
+                  <td>
+                    <span class="row-total">{{ item.get('total')?.value | number: '1.2-2' }}</span>
+                  </td>
+                  <td>
+                    <p-button
+                      icon="bi bi-trash"
+                      severity="danger"
+                      [rounded]="true"
+                      [text]="true"
+                      size="small"
+                      (onClick)="removeRow($index)"
+                    />
+                  </td>
+                </tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" class="grand-total-label">Grand Total</td>
+                <td colspan="2" class="grand-total-value">{{ grandTotal | number: '1.2-2' }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
+
+      <!-- Terms & Conditions -->
+      <section class="form-section">
+        <h2><i class="bi bi-card-text"></i> Terms & Conditions</h2>
+        <div class="field">
+          <label for="remarks">Remarks / Terms</label>
+          <textarea
+            pTextarea
+            id="remarks"
+            formControlName="remarks"
+            rows="5"
+            class="w-full"
+            placeholder="Enter terms and conditions or additional remarks..."
+          ></textarea>
+          <small class="field-hint">Leave empty to use default company terms in PDF</small>
+        </div>
+      </section>
+    </form>
+  }
+</div>
+
+<!-- Company Settings Dialog -->
+<p-dialog
+  header="Company Settings"
+  [(visible)]="settingsDialogVisible"
+  [modal]="true"
+  [style]="{ width: '600px' }"
+  [breakpoints]="{ '768px': '95vw' }"
+>
+  <form [formGroup]="settingsForm" class="settings-form">
+    <div class="field mb-3">
+      <label>Company Logo</label>
+      <div class="logo-upload">
+        @if (companySettings()?.logoBase64) {
+          <img [src]="companySettings()!.logoBase64!" alt="Company Logo" class="logo-preview" />
+        }
+        <input
+          type="file"
+          accept="image/*"
+          class="logo-file-input"
+          (change)="onLogoSelect($event)"
+        />
+      </div>
+      <small class="field-hint">Logo appears on PDF header. Changes apply immediately.</small>
+    </div>
+    <div class="field mb-3">
+      <label for="settingsCompanyName">Company Name *</label>
+      <input pInputText id="settingsCompanyName" formControlName="companyName" class="w-full" />
+    </div>
+    <div class="field mb-3">
+      <label for="companyNameArabic">Company Name (Arabic)</label>
+      <input pInputText id="companyNameArabic" formControlName="companyNameArabic" class="w-full" />
+    </div>
+    <div class="field mb-3">
+      <label for="addressLine1">Address Line 1</label>
+      <input pInputText id="addressLine1" formControlName="addressLine1" class="w-full" />
+    </div>
+    <div class="field mb-3">
+      <label for="addressLine2">Address Line 2</label>
+      <input pInputText id="addressLine2" formControlName="addressLine2" class="w-full" />
+    </div>
+    <div class="grid">
+      <div class="col-12 md:col-6 field mb-3">
+        <label for="settingsPhone">Phone</label>
+        <input pInputText id="settingsPhone" formControlName="phone" class="w-full" />
+      </div>
+      <div class="col-12 md:col-6 field mb-3">
+        <label for="settingsEmail">Email</label>
+        <input pInputText id="settingsEmail" formControlName="email" class="w-full" />
+      </div>
+    </div>
+    <div class="field mb-3">
+      <label for="website">Website</label>
+      <input pInputText id="website" formControlName="website" class="w-full" />
+    </div>
+    <div class="field mb-3">
+      <label for="documentTitle">Document Title</label>
+      <input pInputText id="documentTitle" formControlName="documentTitle" class="w-full" />
+    </div>
+    <div class="field mb-3">
+      <label for="footerText">Footer Text</label>
+      <input pInputText id="footerText" formControlName="footerText" class="w-full" />
+    </div>
+    <div class="field">
+      <label for="termsAndConditions">Default Terms & Conditions</label>
+      <textarea pTextarea id="termsAndConditions" formControlName="termsAndConditions" rows="5" class="w-full"></textarea>
+    </div>
+  </form>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" [outlined]="true" (onClick)="settingsDialogVisible = false" />
+    <p-button label="Save Settings" icon="bi bi-check-lg" (onClick)="saveSettings()" />
+  </ng-template>
+</p-dialog>
+
+@if (savedQuotation() && companySettings()) {
+  <app-quotation-pdf-preview
+    [quotation]="savedQuotation()!"
+    [company]="companySettings()!"
+    [visible]="pdfPreviewVisible"
+    [autoPrint]="pdfAutoPrint"
+    (onClose)="closePdfPreview()"
+  />
+}

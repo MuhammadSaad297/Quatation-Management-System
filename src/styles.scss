@@ -1,0 +1,48 @@
+@import 'primeflex/primeflex.css';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+
+:root {
+  --primary-color: #1b3a5f;
+  --primary-50: #e8eef4;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  font-family: var(--font-family, 'Inter', system-ui, -apple-system, sans-serif);
+  background: var(--surface-ground);
+  color: var(--text-color);
+}
+
+.w-full {
+  width: 100%;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.surface-card {
+  background: var(--surface-card);
+}
+
+.mb-3 {
+  margin-bottom: 1rem;
+}
+
+.mb-4 {
+  margin-bottom: 1.5rem;
+}
+
+.p-inputtext.ng-invalid.ng-touched,
+.p-inputtext.ng-invalid.ng-dirty {
+  border-color: var(--p-red-500, #ef4444);
+}

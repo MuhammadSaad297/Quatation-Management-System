@@ -1,0 +1,144 @@
+<p-toast position="top-right" />
+<p-confirmDialog />
+
+<div class="list-page">
+  <p-toolbar styleClass="page-toolbar mb-4">
+    <ng-template pTemplate="start">
+      <div class="toolbar-title">
+        <i class="bi bi-file-earmark-text"></i>
+        <div>
+          <h1>Quotations</h1>
+          <p>Manage and generate professional quotation PDFs</p>
+        </div>
+      </div>
+    </ng-template>
+    <ng-template pTemplate="end">
+      <p-button label="New Quotation" icon="bi bi-plus-lg" (onClick)="createNew()" />
+    </ng-template>
+  </p-toolbar>
+
+  <div class="surface-card search-card mb-4">
+    <p-iconfield iconPosition="left" class="w-full">
+      <p-inputicon styleClass="bi bi-search" />
+      <input
+        pInputText
+        type="text"
+        class="w-full"
+        placeholder="Search by customer, company, project, or quotation number..."
+        [(ngModel)]="searchTerm"
+        (keyup.enter)="onSearch()"
+      />
+    </p-iconfield>
+    <p-button label="Search" icon="bi bi-search" [outlined]="true" (onClick)="onSearch()" />
+  </div>
+
+  <div class="surface-card table-card">
+      <p-table
+        [value]="quotations()"
+        [paginator]="true"
+        [rows]="pageSize"
+        [first]="page * pageSize"
+        [totalRecords]="totalRecords()"
+        [lazy]="true"
+        [loading]="loading()"
+        (onLazyLoad)="onPageChange($event)"
+        [rowsPerPageOptions]="[5, 10, 25, 50]"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} quotations"
+        responsiveLayout="scroll"
+        styleClass="p-datatable-sm"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Quotation No</th>
+            <th>Date</th>
+            <th>Customer</th>
+            <th>Project</th>
+            <th class="text-right">Grand Total</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-q>
+          <tr>
+            <td>
+              <span class="quotation-no">#{{ q.quotationNo }}</span>
+            </td>
+            <td>{{ formatDate(q.quotationDate) }}</td>
+            <td>
+              <div class="customer-cell">
+                <strong>{{ q.customerName }}</strong>
+                @if (q.companyName) {
+                  <small>{{ q.companyName }}</small>
+                }
+              </div>
+            </td>
+            <td>{{ q.projectName || '—' }}</td>
+            <td class="text-right font-semibold">{{ formatCurrency(q.grandTotal) }}</td>
+            <td>
+              <div class="action-buttons">
+                <p-button
+                  icon="bi bi-pencil"
+                  [rounded]="true"
+                  [text]="true"
+                  severity="info"
+                  pTooltip="Edit"
+                  (onClick)="edit(q.id!)"
+                />
+                <p-button
+                  icon="bi bi-copy"
+                  [rounded]="true"
+                  [text]="true"
+                  severity="secondary"
+                  pTooltip="Duplicate"
+                  (onClick)="duplicate(q.id!)"
+                />
+                <p-button
+                  icon="bi bi-eye"
+                  [rounded]="true"
+                  [text]="true"
+                  severity="help"
+                  pTooltip="Preview PDF"
+                  (onClick)="previewPdf(q)"
+                />
+                <p-button
+                  icon="bi bi-printer"
+                  [rounded]="true"
+                  [text]="true"
+                  severity="success"
+                  pTooltip="Print PDF"
+                  (onClick)="printPdf(q)"
+                />
+                <p-button
+                  icon="bi bi-trash"
+                  [rounded]="true"
+                  [text]="true"
+                  severity="danger"
+                  pTooltip="Delete"
+                  (onClick)="confirmDelete(q)"
+                />
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="6" class="empty-message">
+              <i class="bi bi-inbox"></i>
+              <p>No quotations found</p>
+              <p-button label="Create First Quotation" icon="bi bi-plus-lg" (onClick)="createNew()" />
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+  </div>
+</div>
+
+@if (pdfQuotation()) {
+  <app-quotation-pdf-preview
+    [quotation]="pdfQuotation()!"
+    [company]="pdfCompany()"
+    [visible]="pdfPreviewVisible"
+    [autoPrint]="pdfAutoPrint"
+    (onClose)="closePdfPreview()"
+  />
+}
