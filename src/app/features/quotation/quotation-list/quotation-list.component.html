@@ -93,6 +93,15 @@
                   (onClick)="duplicate(q.id!)"
                 />
                 <p-button
+                  icon="bi bi-download"
+                  [rounded]="true"
+                  [text]="true"
+                  severity="info"
+                  pTooltip="Download PDF"
+                  [loading]="pdfDownloadingId() === q.id"
+                  (onClick)="downloadPdf(q)"
+                />
+                <p-button
                   icon="bi bi-eye"
                   [rounded]="true"
                   [text]="true"

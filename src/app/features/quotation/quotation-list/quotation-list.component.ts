@@ -19,6 +19,7 @@ import { QuotationService, CompanySettingsService } from '../../../shared/servic
 import { CompanySettings, Quotation } from '../../../shared/models/quotation.model';
 import { DEFAULT_COMPANY } from '../../../shared/constants/company.defaults';
 import { QuotationPdfPreviewComponent } from '../quotation-pdf/quotation-pdf-preview.component';
+import { QuotationPdfService } from '../quotation-pdf/quotation-pdf.service';
 
 @Component({
   selector: 'app-quotation-list',
@@ -49,6 +50,7 @@ export class QuotationListComponent implements OnInit {
   readonly loading = signal(false);
   readonly totalRecords = signal(0);
   readonly pdfLoading = signal(false);
+  readonly pdfDownloadingId = signal<string | null>(null);
   searchTerm = '';
   pdfPreviewVisible = false;
   pdfAutoPrint = false;
@@ -63,7 +65,8 @@ export class QuotationListComponent implements OnInit {
     readonly companyService: CompanySettingsService,
     private readonly confirmationService: ConfirmationService,
     private readonly messageService: MessageService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly pdfService: QuotationPdfService
   ) {}
 
   private loadRequestId = 0;
@@ -187,6 +190,33 @@ export class QuotationListComponent implements OnInit {
 
   async previewPdf(quotation: Quotation): Promise<void> {
     await this.openPdfPreview(quotation, false);
+  }
+
+  async downloadPdf(quotation: Quotation): Promise<void> {
+    if (!quotation.id) return;
+
+    this.pdfDownloadingId.set(quotation.id);
+    try {
+      const full = await this.quotationService.getById(quotation.id);
+      const company =
+        this.companyService.settings() ??
+        (await this.companyService.load().catch(() => ({ ...DEFAULT_COMPANY, logoBase64: null })));
+
+      await this.pdfService.downloadPdf(full, company);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Downloaded',
+        detail: `Quotation-${full.quotationNo}.pdf saved`,
+      });
+    } catch (err) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: err instanceof Error ? err.message : 'Failed to download PDF',
+      });
+    } finally {
+      this.pdfDownloadingId.set(null);
+    }
   }
 
   private async openPdfPreview(quotation: Quotation, autoPrint: boolean): Promise<void> {

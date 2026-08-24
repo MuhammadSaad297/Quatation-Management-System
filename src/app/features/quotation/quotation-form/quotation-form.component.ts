@@ -23,6 +23,7 @@ import { MessageService } from 'primeng/api';
 import { QuotationService, CompanySettingsService } from '../../../shared/services/quotation.service';
 import { Quotation, QuotationItem, CompanySettings } from '../../../shared/models/quotation.model';
 import { QuotationPdfPreviewComponent } from '../quotation-pdf/quotation-pdf-preview.component';
+import { QuotationPdfService } from '../quotation-pdf/quotation-pdf.service';
 import { DEFAULT_COMPANY } from '../../../shared/constants/company.defaults';
 
 @Component({
@@ -58,6 +59,7 @@ export class QuotationFormComponent implements OnInit {
   settingsDialogVisible = false;
   pdfPreviewVisible = false;
   pdfAutoPrint = false;
+  readonly pdfDownloading = signal(false);
   readonly savedQuotation = signal<Quotation | null>(null);
   readonly companySettings = signal<CompanySettings | null>(null);
 
@@ -76,7 +78,8 @@ export class QuotationFormComponent implements OnInit {
     readonly companyService: CompanySettingsService,
     private readonly messageService: MessageService,
     private readonly route: ActivatedRoute,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly pdfService: QuotationPdfService
   ) {}
 
   ngOnInit(): void {
@@ -403,6 +406,30 @@ export class QuotationFormComponent implements OnInit {
   previewPdf(): void {
     this.pdfAutoPrint = false;
     this.pdfPreviewVisible = true;
+  }
+
+  async downloadPdf(): Promise<void> {
+    const quotation = this.savedQuotation();
+    const company = this.companySettings();
+    if (!quotation || !company) return;
+
+    this.pdfDownloading.set(true);
+    try {
+      await this.pdfService.downloadPdf(quotation, company);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Downloaded',
+        detail: `Quotation-${quotation.quotationNo}.pdf saved`,
+      });
+    } catch (err) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: err instanceof Error ? err.message : 'Failed to download PDF',
+      });
+    } finally {
+      this.pdfDownloading.set(false);
+    }
   }
 
   closePdfPreview(): void {

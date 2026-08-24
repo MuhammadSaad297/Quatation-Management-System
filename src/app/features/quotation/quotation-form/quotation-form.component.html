@@ -18,6 +18,14 @@
         (onClick)="openSettings()"
       />
       @if (saved()) {
+        <p-button
+          label="Download PDF"
+          icon="bi bi-download"
+          severity="info"
+          [outlined]="true"
+          [loading]="pdfDownloading()"
+          (onClick)="downloadPdf()"
+        />
         <p-button label="Preview PDF" icon="bi bi-eye" severity="help" [outlined]="true" (onClick)="previewPdf()" />
         <p-button label="Print PDF" icon="bi bi-printer" severity="success" [outlined]="true" (onClick)="printPdf()" />
       }
