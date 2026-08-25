@@ -76,6 +76,8 @@ export class QuotationPdfService {
     company: CompanySettings,
     quotation: Quotation
   ): Content {
+    const companyName = this.cleanHeaderText(company.companyName).toUpperCase();
+    const address = this.cleanHeaderText(company.addressLine1, true);
     const arabicBlock: Content = company.companyNameArabic
       ? {
           text: this.formatArabicForPdf(company.companyNameArabic),
@@ -89,32 +91,42 @@ export class QuotationPdfService {
 
     return {
       table: {
-        widths: [108, '*', 128],
-        heights: [96, 26],
+        widths: [96, '*', 122],
+        heights: [86, 30],
         body: [
           [
             logo
               ? {
                   image: logo,
-                  width: 86,
-                  height: 86,
+                  width: 82,
+                  height: 82,
                   alignment: 'center',
-                  margin: [10, 6, 0, 0],
+                  margin: [8, 4, 0, 0],
                   border: [false, false, false, false],
                 }
               : { text: '', border: [false, false, false, false] },
             {
               stack: [
                 {
-                  text: company.companyName.toUpperCase(),
+                  text: companyName,
                   style: 'headerCompany',
                   alignment: 'center',
-                  margin: [0, 14, 0, 0],
+                  margin: [0, 12, 0, 0],
                 },
                 arabicBlock,
               ],
               border: [false, false, false, false],
             },
+            { text: '', border: [false, false, false, false] },
+          ],
+          [
+            {
+              text: address,
+              style: 'headerAddress',
+              margin: [10, 0, 0, 6],
+              border: [false, false, false, false],
+            },
+            { text: '', border: [false, false, false, false] },
             {
               stack: [
                 {
@@ -123,7 +135,7 @@ export class QuotationPdfService {
                     { text: this.formatDateShort(quotation.quotationDate), style: 'headerMetaValue' },
                   ],
                   alignment: 'right',
-                  margin: [0, 16, 12, 3],
+                  margin: [0, 0, 10, 2],
                 },
                 {
                   text: [
@@ -131,22 +143,11 @@ export class QuotationPdfService {
                     { text: String(quotation.quotationNo), style: 'headerMetaValue' },
                   ],
                   alignment: 'right',
-                  margin: [0, 0, 12, 0],
+                  margin: [0, 0, 10, 6],
                 },
               ],
               border: [false, false, false, false],
             },
-          ],
-          [
-            {
-              text: company.addressLine1,
-              style: 'headerAddress',
-              colSpan: 2,
-              margin: [12, 0, 0, 8],
-              border: [false, false, false, false],
-            },
-            {},
-            { text: '', border: [false, false, false, false] },
           ],
         ],
       },
@@ -393,5 +394,17 @@ export class QuotationPdfService {
       .split(/\s+/)
       .reverse()
       .join(' ');
+  }
+
+  private cleanHeaderText(text: string, preserveLines = false): string {
+    const normalized = text.replace(/\r\n/g, '\n').trim();
+    if (preserveLines) {
+      return normalized
+        .split('\n')
+        .map((line) => line.replace(/[ \t]+/g, ' ').trim())
+        .filter(Boolean)
+        .join('\n');
+    }
+    return normalized.replace(/\s+/g, ' ').trim();
   }
 }

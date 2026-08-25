@@ -6,7 +6,7 @@ export class LogoService {
 
   async resolveLogo(logoBase64: string | null, logoUrl: string | null): Promise<string | null> {
     if (logoBase64) {
-      return this.compressImage(logoBase64, 200, 200);
+      return this.compressImage(logoBase64, 280, 280);
     }
 
     const url = logoUrl || '/Logo_transparent.png';
@@ -17,7 +17,7 @@ export class LogoService {
       if (!response.ok) return null;
       const blob = await response.blob();
       const base64 = await this.blobToBase64(blob);
-      const compressed = await this.compressImage(base64, 200, 200);
+      const compressed = await this.compressImage(base64, 280, 280);
       this.cache.set(url, compressed);
       return compressed;
     } catch {
@@ -49,8 +49,10 @@ export class LogoService {
           resolve(dataUrl);
           return;
         }
+        ctx.clearRect(0, 0, width, height);
         ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', 0.85));
+        const preservePng = dataUrl.startsWith('data:image/png');
+        resolve(preservePng ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', 0.9));
       };
       img.onerror = () => resolve(dataUrl);
       img.src = dataUrl;

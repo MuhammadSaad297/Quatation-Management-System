@@ -248,6 +248,8 @@
       <div class="logo-upload">
         @if (companySettings()?.logoBase64) {
           <img [src]="companySettings()!.logoBase64!" alt="Company Logo" class="logo-preview" />
+        } @else if (companySettings()?.logoUrl) {
+          <img [src]="companySettings()!.logoUrl!" alt="Company Logo" class="logo-preview" />
         }
         <input
           type="file"
@@ -256,7 +258,7 @@
           (change)="onLogoSelect($event)"
         />
       </div>
-      <small class="field-hint">Logo appears on PDF header. Changes apply immediately.</small>
+      <small class="field-hint">Use a circular logo like the default (PNG with transparent background). It appears on the PDF header.</small>
     </div>
     <div class="field mb-3">
       <label for="settingsCompanyName">Company Name *</label>
